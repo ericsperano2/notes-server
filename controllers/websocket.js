@@ -1,7 +1,6 @@
 'use strict';
 
 var Note = require('../models/Note');
-
 /*
 var OpsWorks = require('../models/OpsWorks');
 var Instance = require('../models/Instance');
@@ -15,7 +14,9 @@ module.exports = function(io) {
 
         socket.on('getAllNotes', function() {
             console.log('getAllNotes');
-            socket.emit('allNotes', Note.getAll());
+            Note.getAll(function(err, data) {
+                socket.emit('allNotes', data);
+            });
         });
 
         socket.on('createNote', function(note) {

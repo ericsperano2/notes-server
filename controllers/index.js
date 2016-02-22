@@ -4,7 +4,7 @@ var fs = require('fs');
 var express = require('express');
 var config = require('../config/config');
 var router = express.Router(); // eslint-disable-line new-cap
-var Note = require('../models/Note')
+var Note = require('../models/Note');
 
 router.use('/api', require('./api'));
 //router.use('/file', require('./file'));

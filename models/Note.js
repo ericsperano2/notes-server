@@ -1,5 +1,13 @@
 'use strict';
 
+var AWS = require('aws-sdk');
+
+AWS.config.update({
+    region: 'us-west-2',
+    //endpoint: "http://localhost:8000"
+});
+var db = new AWS.DynamoDB();
+
 var Notes = [
     {
         id: 1,
@@ -68,8 +76,12 @@ var Notes = [
 
 module.exports = {
 
-    getAll: function() {
-        return Notes.slice(0).reverse();
+    getAll: function(callback) {
+        console.log('YOYOYOYOYO');
+        db.listTables(function(err, data) {
+            console.log(data.TableNames);
+            callback(null, Notes.slice(0).reverse());
+        });
     },
 
     create: function(note) {
