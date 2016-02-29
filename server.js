@@ -1,6 +1,6 @@
 'use strict';
 
-//var fs = require('fs');
+var fs = require('fs');
 var express = require('express');
 var morgan = require('morgan');
 var hbs = require('express-handlebars');
@@ -14,7 +14,22 @@ var config = require('./config/config');
 var packageJson = require('./package.json');
 var io = require('socket.io');
 var websocket = require('./controllers/websocket');
+var passport = require('passport');
+var GoogleStrategy = require('passport-google-oauth20').Strategy;
 
+/*
+passport.use(new GoogleStrategy({
+    clientID: GOOGLE_CLIENT_ID,
+    clientSecret: GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://www.example.com/auth/google/callback"
+  },
+  function(accessToken, refreshToken, profile, cb) {
+    User.findOrCreate({ googleId: profile.id }, function (err, user) {
+      return cb(err, user);
+    });
+  }
+));
+*/
 // TODO share: middleware
 //var GitkitClient = require('gitkitclient');
 //var gitkitClient = new GitkitClient(JSON.parse(fs.readFileSync(config.gitkit.serverConfig)));
@@ -40,6 +55,16 @@ app.use(morgan('dev'));
 
 app.use(require('./controllers'));
 
+app.get('/auth/google', passport.authenticate('google', {scope: ['profile']}));
+
+app.get('/auth/google/callback',
+    passport.authenticate('google', {failureRedirect: '/login'}),
+    function(req, res) {
+        // Successful authentication, redirect home.
+        res.redirect('/');
+    });
+
+
 // widget page hosting Gitkit javascript
 //app.get('/gitkit', renderGitkitWidgetPage);
 //app.post('/gitkit', renderGitkitWidgetPage);
@@ -47,7 +72,7 @@ app.use(require('./controllers'));
 // Ajax endpoint to send email for password-recovery and email change event
 /*
 app.post('/sendemail', renderSendEmailPage);
-
+*/
 function renderGitkitWidgetPage(req, res) {
     //res.writeHead(200, {'Content-Type': 'text/html'});
     //var html = new Buffer(fs.readFileSync('./views/gitkit-widget.html')).toString();
@@ -55,7 +80,7 @@ function renderGitkitWidgetPage(req, res) {
     //res.end(html);
     res.render('gitkit-widget', {widgetUrl: config.gitkit.widgetUrl, postBody: encodeURIComponent(req.body || '')});
 }
-
+/*
 function renderSendEmailPage(req, res) {
     app.disable('etag');
     gitkitClient.getOobResult(req.body, req.ip, req.cookies.gtoken, function(err, resp) {

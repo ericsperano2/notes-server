@@ -30,6 +30,7 @@ router.get('/', function(req, res) {
     } else {
     }
     */
+    console.log('/controllers/index.js');
     res.render('index', {title: config.appTitle, loginInfo: null});
 });
 
