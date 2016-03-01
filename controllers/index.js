@@ -6,13 +6,18 @@ var config = require('../config/config');
 var router = express.Router(); // eslint-disable-line new-cap
 var Note = require('../models/Note');
 
+var passport = require('passport');
+
 router.use('/api', require('./api'));
 //router.use('/file', require('./file'));
 
 //var GitkitClient = require('gitkitclient');
 //var gitkitClient = new GitkitClient(JSON.parse(fs.readFileSync(config.gitkit.serverConfig)));
 
-router.get('/', function(req, res) {
+router.get('/',
+    require('connect-ensure-login').ensureLoggedIn(),
+    function(req, res) {
+        console.log('USER', req.user);
     /*
     if (req.cookies.gtoken) {
         gitkitClient.verifyGitkitToken(req.cookies.gtoken, function (err, resp) {
@@ -34,5 +39,39 @@ router.get('/', function(req, res) {
     res.render('index', {title: config.appTitle, loginInfo: null});
 });
 
+router.get('/login',
+    function(req, res) {
+        res.render('login');
+    }
+);
+
+router.get('/login/google',
+  passport.authenticate('google', {scope: ['profile']}));
+
+router.get('/login/google/callback',
+    passport.authenticate('google', {failureRedirect: '/login'}),
+    function(req, res) {
+        res.redirect('/');
+    }
+);
 
 module.exports = router;
+
+/*
+
+// Define routes.
+app.get('/',
+  function(req, res) {
+    res.render('home', { user: req.user });
+  });
+
+
+
+
+app.get('/profile',
+  require('connect-ensure-login').ensureLoggedIn(),
+  function(req, res){
+    res.render('profile', { user: req.user });
+  });
+
+*/

@@ -1,8 +1,8 @@
 'use strict';
 
-var fs = require('fs');
+//var fs = require('fs');
 var express = require('express');
-var morgan = require('morgan');
+//var morgan = require('morgan');
 var hbs = require('express-handlebars');
 var path = require('path');
 var app = express();
@@ -16,6 +16,39 @@ var io = require('socket.io');
 var websocket = require('./controllers/websocket');
 var passport = require('passport');
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
+
+passport.use(
+    new GoogleStrategy({
+        clientID: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        callbackURL: 'http://localhost:3000/login/google/callback'
+    },
+    function(accessToken, refreshToken, profile, cb) {
+        // In this example, the user's Facebook profile is supplied as the user
+        // record.  In a production-quality application, the Facebook profile should
+        // be associated with a user record in the application's database, which
+        // allows for account linking and authentication with other identity
+        // providers.
+        return cb(null, profile);
+    })
+);
+
+// Configure Passport authenticated session persistence.
+//
+// In order to restore authentication state across HTTP requests, Passport needs
+// to serialize users into and deserialize users out of the session.  In a
+// production-quality application, this would typically be as simple as
+// supplying the user ID when serializing, and querying the user record by ID
+// from the database when deserializing.  However, due to the fact that this
+// example does not have a database, the complete Twitter profile is serialized
+// and deserialized.
+passport.serializeUser(function(user, callback) {
+    callback(null, user);
+});
+
+passport.deserializeUser(function(obj, callback) {
+    callback(null, obj);
+});
 
 /*
 passport.use(new GoogleStrategy({
@@ -41,29 +74,38 @@ app.engine('html', hbs({
 }));
 app.set('view engine', 'html');
 
-/*
-app.use(cookieParser());
-app.use(bodyParser.urlencoded({
-    extended: false
-}));
-app.use(bodyParser.json());
-*/
-
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(morgan('dev'));
+// Use application-level middleware for common functionality, including
+// logging, parsing, and session handling.
+app.use(require('morgan')('dev')); // combined
+//app.use(require('cookie-parser')());
+//app.use(require('body-parser').urlencoded({ extended: true }));
+//app.use(bodyParser.json());
+app.use(require('express-session')({
+    secret: 'keyboard cat',
+    resave: true,
+    saveUninitialized: true
+}));
+
+// Initialize Passport and restore authentication state, if any, from the
+// session.
+app.use(passport.initialize());
+app.use(passport.session());
+//app.use(morgan('dev'));
 
 app.use(require('./controllers'));
 
-app.get('/auth/google', passport.authenticate('google', {scope: ['profile']}));
+//app.get('/login/google', passport.authenticate('google', {scope: ['profile']}));
+/*
 
-app.get('/auth/google/callback',
+app.get('/login/google/callback',
     passport.authenticate('google', {failureRedirect: '/login'}),
     function(req, res) {
         // Successful authentication, redirect home.
         res.redirect('/');
     });
-
+*/
 
 // widget page hosting Gitkit javascript
 //app.get('/gitkit', renderGitkitWidgetPage);
@@ -73,13 +115,13 @@ app.get('/auth/google/callback',
 /*
 app.post('/sendemail', renderSendEmailPage);
 */
-function renderGitkitWidgetPage(req, res) {
+//function renderGitkitWidgetPage(req, res) {
     //res.writeHead(200, {'Content-Type': 'text/html'});
     //var html = new Buffer(fs.readFileSync('./views/gitkit-widget.html')).toString();
     //html = html.replace('%%postBody%%', encodeURIComponent(req.body || ''));
     //res.end(html);
-    res.render('gitkit-widget', {widgetUrl: config.gitkit.widgetUrl, postBody: encodeURIComponent(req.body || '')});
-}
+//    res.render('gitkit-widget', {widgetUrl: config.gitkit.widgetUrl, postBody: encodeURIComponent(req.body || '')});
+//}
 /*
 function renderSendEmailPage(req, res) {
     app.disable('etag');
