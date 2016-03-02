@@ -39,6 +39,10 @@ router.get('/',
     res.render('index', {title: config.appTitle, loginInfo: null});
 });
 
+router.get('/healthcheck', function(req, res) {
+    res.json({'ok':true});
+});
+
 router.get('/login',
     function(req, res) {
         res.render('login');
