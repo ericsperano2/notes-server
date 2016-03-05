@@ -94,7 +94,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 //app.use(morgan('dev'));
 
-if (process.env.NOTES_SERVER_ENV !== 'dev') {
+if (!process.env.NOTES_SERVER_ENV || process.env.NOTES_SERVER_ENV !== 'dev') {
     app.use(function requireHTTPS(req, res, next) {
         if (!req.secure) {
             return res.redirect('https://' + req.headers.host + req.url);
