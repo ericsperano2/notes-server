@@ -1,9 +1,12 @@
 'use strict';
 
-//var config = require('../config/config')
+var config = require('../config/config')
 var AWS = require('aws-sdk');
-var credentials = new AWS.SharedIniFileCredentials({profile: 'portfolio_demo'});
-AWS.config.credentials = credentials;
+
+if (config.env === 'dev') {
+    var credentials = new AWS.SharedIniFileCredentials({profile: 'portfolio_demo'});
+    AWS.config.credentials = credentials;
+}
 var docClient = new AWS.DynamoDB.DocumentClient();
 
 /*
@@ -24,12 +27,6 @@ module.exports = {
 
     getAll: function(callback) {
         console.log('getAll');
-        /*
-        db.listTables(function(err, data) {
-            console.log(data.TableNames);
-            callback(null, []);
-        });
-        */
         var params = {
             TableName : TblNotes//,
             /*
@@ -49,11 +46,6 @@ module.exports = {
             } else {
                 console.log('Scan succeeded.', data);
                 callback(null, data.Items);
-                /*
-                data.Items.forEach(function(item) {
-                    console.log(' -', item.year + ': ' + item.title);
-                });
-                */
             }
         });
     },

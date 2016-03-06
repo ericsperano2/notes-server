@@ -28,5 +28,5 @@ if (process.env.NOTES_SERVER_ENV && process.env.NOTES_SERVER_ENV === 'dev') {
 }
 
 AWS.config.update({
-    region: 'us-west-2'
+    region: 'us-west-2' // TODO????
 });
