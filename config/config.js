@@ -1,32 +1,39 @@
 var AWS = require('aws-sdk');
 
+var Dev = 'dev';
+var Prod = 'prod';
+
+var CallbackURLDev = 'http://localhost:3000/login/google/callback';
+var CallbackURLProd = 'https://notes.spe.quebec/login/google/callback';
+
+var Env = (process.env.NOTES_SERVER_ENV && process.env.NOTES_SERVER_ENV === Dev) ? Dev : Prod;
+
 module.exports = {
+    env: Env,
+    runningInDev: Env === Dev,
+
     validUserIds: [
         '01294641996338404277', // eric.sperano@gmail.com
         '02310482117186701226'  // eric.sperano2@gmail.com
     ],
     authentication: {
         google: {
-            prod: {
-                callbackURL: 'https://notes.spe.quebec/login/google/callback'
-            },
-            dev: {
-                callbackURL: 'http://localhost:3000/login/google/callback'
-            }
+            callbackURL: Env === Dev ? CallbackURLDev : CallbackURLProd,
         }
+    },
+    tables: {
+        notes: 'notes'
     }
 };
 
-if (process.env.NOTES_SERVER_ENV && process.env.NOTES_SERVER_ENV === 'dev') {
-    module.exports.env = 'dev';
-    console.log('Running in development mode.');
-    module.exports.authentication.google.callbackURL = module.exports.authentication.google.dev.callbackURL;
-} else {
-    module.exports.env = 'prod';
-    console.log('Running in production mode.');
-    module.exports.authentication.google.callbackURL = module.exports.authentication.google.prod.callbackURL;
+/*
+if (module.exports.runningInDev) {
+    var credentials = new AWS.SharedIniFileCredentials({profile: 'portfolio_demo'});
+    AWS.config.credentials = credentials;
 }
+*/
 
+console.log('Running in ' + module.exports.env + ' environment.');
 AWS.config.update({
     region: 'us-west-2' // TODO????
 });

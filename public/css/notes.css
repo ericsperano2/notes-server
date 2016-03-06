@@ -4,10 +4,6 @@ body {
     color: #555;
 }
 
-.jumbotron {
-    background-color: #335;
-}
-
 .btn-primary {
     background-color: #557;
     border-color: #557;
@@ -15,6 +11,11 @@ body {
 
 label ::after {
     content: ":"
+}
+
+#app-error pre {
+    background-color: #f77;
+    color: #200;
 }
 
 #main-panel .jumbotron .input-group button {

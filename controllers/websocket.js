@@ -4,7 +4,6 @@ var Note = require('../models/Note');
 /*
 var OpsWorks = require('../models/OpsWorks');
 var Instance = require('../models/Instance');
-
 */
 module.exports = function(io) {
     io.on('connection', function(socket) {
@@ -13,8 +12,11 @@ module.exports = function(io) {
         // var currentTailConnection = null;
 
         socket.on('getAllNotes', function() {
-            console.log('getAllNotes');
             Note.getAll(function(err, data) {
+                if (err) {
+                    socket.emit('appError', err);
+                    return;
+                }
                 socket.emit('allNotes', data);
             });
         });

@@ -1,34 +1,16 @@
 'use strict';
 
-var config = require('../config/config')
+var config = require('../config/config');
 var AWS = require('aws-sdk');
 
-if (config.env === 'dev') {
-    var credentials = new AWS.SharedIniFileCredentials({profile: 'portfolio_demo'});
-    AWS.config.credentials = credentials;
-}
 var docClient = new AWS.DynamoDB.DocumentClient();
-
-/*
-AWS.config.update({
-    region: 'us-west-2',
-    //endpoint: "http://localhost:8000"
-});
-*/
-//var AWS = require('aws-sdk');
-
-/*
-*/
-//var db = new AWS.DynamoDB();
-
-var TblNotes = 'notes';
 
 module.exports = {
 
     getAll: function(callback) {
-        console.log('getAll');
+        console.log('Note.getAll');
         var params = {
-            TableName : TblNotes//,
+            TableName : config.tables.notes//,
             /*
             KeyConditionExpression: "#yr = :yyyy",
             ExpressionAttributeNames:{
@@ -42,20 +24,20 @@ module.exports = {
 
         docClient.scan(params, function(err, data) {
             if (err) {
-                console.error('Unable to query. Error:', JSON.stringify(err, null, 2));
-            } else {
-                console.log('Scan succeeded.', data);
-                callback(null, data.Items);
+                console.error('Notes.docClient.scan Unable to query:\n' + JSON.stringify(err, null, 2));
+                return callback(err);
             }
+            console.log('Notes.docClient.scan: ' + data.Items.length + ' item(s) found.');
+            callback(null, data.Items);
         });
     },
 
     create: function(note) {
         note.uuid = '1';
-        note.timestamp = "" + Date.now();
+        note.timestamp = String(Date.now());
         console.log(JSON.stringify(note, null, 2));
         var params = {
-            TableName: TblNotes,
+            TableName: config.tables.notes,
             Item: note
         };
         docClient.put(params, function(err, data) {
@@ -65,26 +47,27 @@ module.exports = {
                 console.log('Added item:', JSON.stringify(data, null, 2));
             }
         });
-
-        //note.id = Notes[Notes.length - 1].id + 1;
-        //Notes.push(note);
     },
 
     update: function(note) {
+        /*
         for (var i = 0; i < Notes.length; ++i) {
             if (Notes[i].id === note.id) {
                 Notes[i] = note;
                 break;
             }
         }
+        */
     },
 
     delete: function(noteId) {
+        /*
         for (var i = 0; i < Notes.length; ++i) {
             if (Notes[i].id === noteId) {
                 Notes.splice(i, 1);
                 break;
             }
         }
+        */
     }
 };

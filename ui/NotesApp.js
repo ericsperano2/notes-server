@@ -11,6 +11,7 @@ var Colors = require('./Colors');
 module.exports = React.createClass({
     getInitialState: function() {
         return {
+            error: null,
             creating: false,
             notes: [],
             editing: []
@@ -19,6 +20,11 @@ module.exports = React.createClass({
 
     setupWebsocket: function() {
         this.socket = io(); // eslint-disable-line block-scoped-var, no-undef
+
+        this.socket.on('appError', function(error) {
+            console.log('appError', error);
+            this.setState({error: error});
+        }.bind(this));
 
         this.socket.on('allNotes', function(data) {
             console.log('allNotes', data);
@@ -108,13 +114,24 @@ module.exports = React.createClass({
 
     render: function() {
         var createDiv;
+        var errorDiv;
         if (this.state.creating) {
             createDiv = (<div className='note note-new'>
                 <textarea ref='content'/><br/>
             </div>);
         }
+        if (this.state.error) {
+            errorDiv = (<div className='app-error' id='app-error'>
+                <pre>
+                    <code>
+                        {JSON.stringify(this.state.error, null, 2)}
+                    </code>
+                </pre>
+            </div>);
+        }
         return (
             <div>
+                {errorDiv}
                 <Toolbar newNote={this.newNote} createNote={this.createNote}
                          cancelCreate={this.cancelCreate} isCreating={this.state.creating}/>
                 {createDiv}
