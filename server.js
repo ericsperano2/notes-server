@@ -95,6 +95,7 @@ app.use(passport.session());
 //app.use(morgan('dev'));
 
 if (!process.env.NOTES_SERVER_ENV || process.env.NOTES_SERVER_ENV !== 'dev') {
+    console.log('forwarded proto', req.get('X-Forwarded-Proto'));
     app.use(function requireHTTPS(req, res, next) {
         if (req.path !== '/healthcheck' && !req.secure && req.get('X-Forwarded-Proto') !== 'https') {
             return res.redirect('https://' + req.headers.host + req.url);
