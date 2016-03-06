@@ -20,12 +20,13 @@ module.exports = {
 if (process.env.NOTES_SERVER_ENV && process.env.NOTES_SERVER_ENV === 'dev') {
     module.exports.env = 'dev';
     console.log('Running in development mode.');
-    AWS.config.update({
-        region: 'us-west-2'
-    });
     module.exports.authentication.google.callbackURL = module.exports.authentication.google.dev.callbackURL;
 } else {
     module.exports.env = 'prod';
     console.log('Running in production mode.');
     module.exports.authentication.google.callbackURL = module.exports.authentication.google.prod.callbackURL;
 }
+
+AWS.config.update({
+    region: 'us-west-2'
+});
