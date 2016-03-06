@@ -17,6 +17,7 @@ var websocket = require('./controllers/websocket');
 var passport = require('passport');
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
 
+
 passport.use(
     new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
@@ -24,6 +25,7 @@ passport.use(
         callbackURL: config.authentication.google.callbackURL
     },
     function(accessToken, refreshToken, profile, cb) {
+        console.log('passport.use - google strategy:', accessToken, refreshToken);
         // In this example, the user's Facebook profile is supplied as the user
         // record.  In a production-quality application, the Facebook profile should
         // be associated with a user record in the application's database, which
@@ -42,6 +44,7 @@ passport.use(
 // from the database when deserializing.  However, due to the fact that this
 // example does not have a database, the complete Twitter profile is serialized
 // and deserialized.
+
 passport.serializeUser(function(user, callback) {
     callback(null, user);
 });
@@ -49,23 +52,6 @@ passport.serializeUser(function(user, callback) {
 passport.deserializeUser(function(obj, callback) {
     callback(null, obj);
 });
-
-/*
-passport.use(new GoogleStrategy({
-    clientID: GOOGLE_CLIENT_ID,
-    clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://www.example.com/auth/google/callback"
-  },
-  function(accessToken, refreshToken, profile, cb) {
-    User.findOrCreate({ googleId: profile.id }, function (err, user) {
-      return cb(err, user);
-    });
-  }
-));
-*/
-// TODO share: middleware
-//var GitkitClient = require('gitkitclient');
-//var gitkitClient = new GitkitClient(JSON.parse(fs.readFileSync(config.gitkit.serverConfig)));
 
 app.set('views', path.join(__dirname, 'views'));
 
@@ -82,11 +68,37 @@ app.use(require('morgan')('dev')); // combined
 //app.use(require('cookie-parser')());
 //app.use(require('body-parser').urlencoded({ extended: true }));
 //app.use(bodyParser.json());
-app.use(require('express-session')({
+var session = require('express-session');
+var DynamoDBStore = require('connect-dynamodb')({session: session});
+var options = {
+    // Name of the table you would like to use for sessions.
+    // Defaults to 'sessions'
+    table: 'notes-sessions',
+
+    // Optional path to AWS credentials (loads credentials from environment variables by default)
+    // AWSConfigPath: './path/to/credentials.json',
+
+    // Optional JSON object of AWS configuration options
+    AWSConfigJSON: {
+        region: 'us-west-2',
+    //     correctClockSkew: true
+    },
+
+    // Optional. How often expired sessions should be cleaned up.
+    // Defaults to 600000 (10 minutes).
+    reapInterval: 600000
+};
+
+app.use(session({
     secret: 'keyboard cat',
+    store: new DynamoDBStore(options),
     resave: true,
     saveUninitialized: true
 }));
+
+/*
+
+*/
 
 // Initialize Passport and restore authentication state, if any, from the
 // session.
@@ -105,49 +117,6 @@ if (!process.env.NOTES_SERVER_ENV || process.env.NOTES_SERVER_ENV !== 'dev') {
 
 app.use(require('./controllers'));
 
-//app.get('/login/google', passport.authenticate('google', {scope: ['profile']}));
-/*
-
-app.get('/login/google/callback',
-    passport.authenticate('google', {failureRedirect: '/login'}),
-    function(req, res) {
-        // Successful authentication, redirect home.
-        res.redirect('/');
-    });
-*/
-
-// widget page hosting Gitkit javascript
-//app.get('/gitkit', renderGitkitWidgetPage);
-//app.post('/gitkit', renderGitkitWidgetPage);
-
-// Ajax endpoint to send email for password-recovery and email change event
-/*
-app.post('/sendemail', renderSendEmailPage);
-*/
-//function renderGitkitWidgetPage(req, res) {
-    //res.writeHead(200, {'Content-Type': 'text/html'});
-    //var html = new Buffer(fs.readFileSync('./views/gitkit-widget.html')).toString();
-    //html = html.replace('%%postBody%%', encodeURIComponent(req.body || ''));
-    //res.end(html);
-//    res.render('gitkit-widget', {widgetUrl: config.gitkit.widgetUrl, postBody: encodeURIComponent(req.body || '')});
-//}
-/*
-function renderSendEmailPage(req, res) {
-    app.disable('etag');
-    gitkitClient.getOobResult(req.body, req.ip, req.cookies.gtoken, function(err, resp) {
-        if (err) {
-            console.log('Error: ' + JSON.stringify(err));
-        } else {
-            // Add code here to send email
-            console.log('Send email: ' + JSON.stringify(resp));
-        }
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/html');
-        res.end(resp.responseBody);
-    });
-}
-*/
-
 io = io.listen(app.listen(port, function() {
     console.log(clc.bold.cyan(config.appTitle), 'version', clc.bold.cyan(packageJson.version),
         'listening on port', clc.bold.green(String(port)) + '.');
@@ -155,11 +124,3 @@ io = io.listen(app.listen(port, function() {
 }));
 
 websocket(io);
-
-/*
-app.listen(port, function() {
-    console.log(clc.bold.cyan(config.appTitle), 'version', clc.bold.cyan(packageJson.version),
-        'listening on port', clc.bold.green(String(port)) + '.');
-    console.log();
-});
-*/
