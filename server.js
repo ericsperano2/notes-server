@@ -21,7 +21,7 @@ passport.use(
     new GoogleStrategy({
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: 'http://localhost:3000/login/google/callback'
+        callbackURL: config.authentication.google.callbackURL
     },
     function(accessToken, refreshToken, profile, cb) {
         // In this example, the user's Facebook profile is supplied as the user
