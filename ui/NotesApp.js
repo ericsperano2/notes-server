@@ -11,6 +11,7 @@ var websocket = require('./websocket');
 module.exports = React.createClass({
     getInitialState: function() {
         return {
+            user: null,
             error: null,
             creating: false,
             notes: [],
@@ -18,18 +19,12 @@ module.exports = React.createClass({
         };
     },
 
-    setupWebsocket: function() {
-        websocket.setup(this);
-    },
-
     componentWillMount: function() {
-        console.log('componentWillMount');
-        this.setupWebsocket();
+        websocket.setup(this);
         this.socket.emit('getAllNotes');
     },
 
     componentDidMount: function() {
-        console.log('componentDidMount');
     },
 
     newNote: function() {
@@ -64,7 +59,6 @@ module.exports = React.createClass({
 
     updateNote: function(note) {
         note.content = this.refs['content-' + note.timestamp].getDOMNode().value;
-        console.log("will emit updateNote with", note);
         this.socket.emit('updateNote', note);
     },
 
@@ -90,10 +84,11 @@ module.exports = React.createClass({
                 </pre>
             </div>);
         }
+        // TODO Note component
         return (
             <div>
                 {errorDiv}
-                <Toolbar newNote={this.newNote} createNote={this.createNote}
+                <Toolbar user={this.state.user} newNote={this.newNote} createNote={this.createNote}
                          cancelCreate={this.cancelCreate} isCreating={this.state.creating}/>
                 {createDiv}
                 <div id='notes'>

@@ -4,6 +4,7 @@ var Note = require('../models/Note');
 
 module.exports = function(io) {
     io.on('connection', function(socket) {
+        socket.emit('authenticated', socket.request.user);
         //console.log('Websocket: client connected: ', socket.request.user);
         //console.log('logged_in?', socket.request.user.logged_in);
 

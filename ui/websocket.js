@@ -19,6 +19,10 @@ module.exports = {
             obj.setState({notes: obj.state.notes, creating: false});
         });
 
+        obj.socket.on('authenticated', function(user) {
+            obj.setState({user: user});
+        });
+
         obj.socket.on('noteUpdated', function(note) {
             //obj.restoreNote(note);
             //obj.state.notes.unshift(note);

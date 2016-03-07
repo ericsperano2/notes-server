@@ -13,6 +13,12 @@ module.exports = React.createClass({
 
     render: function() {
         var btn;
+        var name = null;
+
+        if (this.props.user) {
+            name = <span id='userDisplayName'>{this.props.user.displayName}</span>;
+        }
+
         if (this.props.isCreating) {
             btn = [
                 <Button onClick={this.props.createNote}>Save</Button>,
@@ -21,9 +27,9 @@ module.exports = React.createClass({
         } else {
             btn = <Button onClick={this.props.newNote}>New Note</Button>;
         }
-
         return (
             <div id='main-toolbar' className='toolbar'>
+                {name}
                 {btn}
                 <a href='/logout'>Logout</a>
             </div>
