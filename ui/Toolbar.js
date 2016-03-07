@@ -25,6 +25,7 @@ module.exports = React.createClass({
         return (
             <div id='main-toolbar' className='toolbar'>
                 {btn}
+                <a href='/logout'>Logout</a>
             </div>
         );
     }

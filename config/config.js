@@ -12,10 +12,6 @@ module.exports = {
     env: Env,
     runningInDev: Env === Dev,
 
-    validUserIds: [
-        '01294641996338404277', // eric.sperano@gmail.com
-        '02310482117186701226'  // eric.sperano2@gmail.com
-    ],
     authentication: {
         google: {
             callbackURL: Env === Dev ? CallbackURLDev : CallbackURLProd,

@@ -6,7 +6,7 @@ var Input = require('react-bootstrap').Input; // eslint-disable-line no-unused-v
 var Button = require('react-bootstrap').Button; // eslint-disable-line no-unused-vars
 var Toolbar = require('./Toolbar'); // eslint-disable-line no-unused-vars
 var Colors = require('./Colors');
-//var cf = require('aws-cloudfront-sign');
+var websocket = require('./websocket');
 
 module.exports = React.createClass({
     getInitialState: function() {
@@ -19,41 +19,7 @@ module.exports = React.createClass({
     },
 
     setupWebsocket: function() {
-        this.socket = io(); // eslint-disable-line block-scoped-var, no-undef
-
-        this.socket.on('appError', function(error) {
-            console.log('appError', error);
-            this.setState({error: error});
-        }.bind(this));
-
-        this.socket.on('allNotes', function(data) {
-            console.log('allNotes', data);
-            this.setState({notes: data});
-        }.bind(this));
-
-        this.socket.on('noteCreated', function(note) {
-            this.state.notes.unshift(note);
-            this.setState({notes: this.state.notes, creating: false});
-        }.bind(this));
-
-        this.socket.on('noteUpdated', function(note) {
-            this.restoreNote(note);
-            //this.state.notes.unshift(note);
-            //this.setState({notes: this.state.notes, creating: false});
-        }.bind(this));
-
-        this.socket.on('noteDeleted', function(noteId) {
-            this.state.editing.splice(this.state.editing.indexOf(noteId), 1);
-            this.setState({editing: this.state.editing});
-            var notes = [];
-            for (var i = 0; i < this.state.notes.length; ++i) {
-                if (this.state.notes[i].id !== noteId) {
-                    notes.push(this.state.notes[i]);
-                }
-            }
-            this.setState({notes: notes});
-        }.bind(this));
-
+        websocket.setup(this);
     },
 
     componentWillMount: function() {
@@ -65,12 +31,6 @@ module.exports = React.createClass({
     componentDidMount: function() {
         console.log('componentDidMount');
     },
-
-    /*
-    signOut: function() {
-        window.google.identitytoolkit.signOut();
-    },
-    */
 
     newNote: function() {
         this.setState({creating: true});
@@ -89,12 +49,12 @@ module.exports = React.createClass({
     },
 
     editNote: function(note) {
-        this.state.editing.push(note.id);
+        this.state.editing.push(note.timestamp);
         this.setState({editing: this.state.editing});
     },
 
     restoreNote: function(note) {
-        this.state.editing.splice(this.state.editing.indexOf(note.id), 1);
+        this.state.editing.splice(this.state.editing.indexOf(note.timestamp), 1);
         this.setState({editing: this.state.editing});
     },
 
@@ -103,13 +63,14 @@ module.exports = React.createClass({
     },
 
     updateNote: function(note) {
-        note.content = this.refs['content-' + note.id].getDOMNode().value;
+        note.content = this.refs['content-' + note.timestamp].getDOMNode().value;
+        console.log("will emit updateNote with", note);
         this.socket.emit('updateNote', note);
     },
 
     deleteNote: function(note) {
         //TODO confirm
-        this.socket.emit('deleteNote', note.id);
+        this.socket.emit('deleteNote', note.timestamp);
     },
 
     render: function() {
@@ -137,15 +98,15 @@ module.exports = React.createClass({
                 {createDiv}
                 <div id='notes'>
                 {this.state.notes.map(function(note) {
-                    if (this.state.editing.indexOf(note.id) > -1) {
-                        return (<div key={note.id} className={'note-edit note-' + note.color}>
-                            <textarea ref={'content-' + note.id} defaultValue={note.content}/><br/>
+                    if (this.state.editing.indexOf(note.timestamp) > -1) {
+                        return (<div key={note.timestamp} className={'note-edit note-' + note.color}>
+                            <textarea ref={'content-' + note.timestamp} defaultValue={note.content}/><br/>
                             <button onClick={this.updateNote.bind(null, note)}>Save</button>
                             <button onClick={this.cancelEdit.bind(null, note)}>Cancel</button>
                             <button onClick={this.deleteNote.bind(null, note)}>Delete</button>
                         </div>);
                     }
-                    return (<div key={note.id} className={'note note-' + note.color}>
+                    return (<div key={note.timestamp} className={'note note-' + note.color}>
                         <textarea value={note.content} readOnly={true}
                             onDoubleClick={this.editNote.bind(null, note)}/>
                     </div>);

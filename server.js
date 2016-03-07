@@ -16,7 +16,9 @@ var io = require('socket.io');
 var websocket = require('./controllers/websocket');
 var passport = require('passport');
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
+var passportSocketIo = require('passport.socketio');
 
+var sessionSecret = 'keyboard cat';
 
 passport.use(
     new GoogleStrategy({
@@ -64,16 +66,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Use application-level middleware for common functionality, including
 // logging, parsing, and session handling.
-app.use(require('morgan')('dev')); // combined
-//app.use(require('cookie-parser')());
+app.use(require('morgan')('dev')); // combined // TODO
+//app.use(cookieParser);
 //app.use(require('body-parser').urlencoded({ extended: true }));
 //app.use(bodyParser.json());
+
 var session = require('express-session');
 var DynamoDBStore = require('connect-dynamodb')({session: session});
 var options = {
     // Name of the table you would like to use for sessions.
     // Defaults to 'sessions'
-    table: 'notes-sessions',
+    table: 'notes-sessions', // TODO config
 
     // Optional path to AWS credentials (loads credentials from environment variables by default)
     // AWSConfigPath: './path/to/credentials.json',
@@ -89,22 +92,18 @@ var options = {
     reapInterval: 600000
 };
 
+var sessionStore = new DynamoDBStore(options);
 app.use(session({
-    secret: 'keyboard cat',
-    store: new DynamoDBStore(options),
+    secret: sessionSecret,
+    store: sessionStore,
     resave: true,
     saveUninitialized: true
 }));
-
-/*
-
-*/
 
 // Initialize Passport and restore authentication state, if any, from the
 // session.
 app.use(passport.initialize());
 app.use(passport.session());
-//app.use(morgan('dev'));
 
 if (!process.env.NOTES_SERVER_ENV || process.env.NOTES_SERVER_ENV !== 'dev') {
     app.use(function requireHTTPS(req, res, next) {
@@ -121,6 +120,25 @@ io = io.listen(app.listen(port, function() {
     console.log(clc.bold.cyan(config.appTitle), 'version', clc.bold.cyan(packageJson.version),
         'listening on port', clc.bold.green(String(port)) + '.');
     console.log();
+}));
+
+
+io.use(passportSocketIo.authorize({
+    key: 'connect.sid',       // the name of the cookie where express/connect stores its session_id
+    secret: sessionSecret,    // the session_secret to parse the cookie
+    store: sessionStore,
+    success: function(data, accept) {
+        console.log('successful connection to socket.io');
+        accept();
+    },
+    fail: function(data, message, error, accept) {
+        console.log('failed connection to socket.io:', message);
+        if (error) {
+            accept(new Error(message));
+            // this error will be sent to the user as a special error-package
+            // see: http://socket.io/docs/client-api/#socket > error-object
+        }
+    }
 }));
 
 websocket(io);
