@@ -93,17 +93,30 @@ var options = {
 };
 
 var sessionStore = new DynamoDBStore(options);
+/*
 app.use(session({
     secret: sessionSecret,
     store: sessionStore,
     resave: true,
     saveUninitialized: true
-}));
+}));*/
+app.use(function(req, res, next){
+    if (req.path === '/healthcheck') {
+        next();
+    } else {//otherwise run session
+        session({
+            secret: sessionSecret,
+            store: sessionStore,
+            resave: true,
+            saveUninitialized: true
+        })(req, res, next);
+    }
+});
 
 // Initialize Passport and restore authentication state, if any, from the
 // session.
 app.use(passport.initialize());
-app.use(passport.session());
+app.use(passport.session()); // TODO make sure the healthcheck does not create a session, seems to have a lot of session in the database
 
 if (!process.env.NOTES_SERVER_ENV || process.env.NOTES_SERVER_ENV !== 'dev') {
     app.use(function requireHTTPS(req, res, next) {
