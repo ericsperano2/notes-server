@@ -24,7 +24,7 @@ module.exports = {
         });
 
         obj.socket.on('noteUpdated', function(note) {
-            //obj.restoreNote(note);
+            obj.restoreNote(note);
             //obj.state.notes.unshift(note);
             //obj.setState({notes: obj.state.notes, creating: false});
         });
