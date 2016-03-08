@@ -102,6 +102,7 @@ app.use(session({
 }));*/
 app.use(function(req, res, next){
     if (req.path === '/healthcheck') {
+        console.log("no session for /healthcheck");
         next();
     } else {//otherwise run session
         session({
