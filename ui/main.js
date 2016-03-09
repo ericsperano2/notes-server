@@ -7,7 +7,6 @@ var Route = require('react-router').Route; // eslint-disable-line no-unused-vars
 var Router = require('react-router').Router; // eslint-disable-line no-unused-vars
 var hashHistory = require('react-router').hashHistory;
 var NotesApp = require('./NotesApp'); // eslint-disable-line no-unused-vars
-var NotesMain = require('./NotesMain'); // eslint-disable-line no-unused-vars
 
 (function() {
     /*
