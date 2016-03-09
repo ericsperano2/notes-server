@@ -1,9 +1,8 @@
 'use strict';
 
 var React = require('react');
-var Jumbotron = require('react-bootstrap').Jumbotron; // eslint-disable-line no-unused-vars
-var Input = require('react-bootstrap').Input; // eslint-disable-line no-unused-vars
 var Button = require('react-bootstrap').Button; // eslint-disable-line no-unused-vars
+var NotesActions = require('./NotesActions');
 
 module.exports = React.createClass({
     getInitialState: function() {
@@ -11,27 +10,26 @@ module.exports = React.createClass({
         };
     },
 
+    newNote: function() {
+        NotesActions.new();
+    },
+
     render: function() {
         var btn;
         var name = null;
 
         if (this.props.user) {
-            name = <span id='userDisplayName'>{this.props.user.displayName}</span>;
+            name = <span id="user-display-name">{this.props.user.displayName}</span>;
         }
 
-        if (this.props.isCreating) {
-            btn = [
-                <Button onClick={this.props.createNote}>Save</Button>,
-                <Button onClick={this.props.cancelCreate}>Cancel</Button>
-            ];
-        } else {
-            btn = <Button onClick={this.props.newNote}>New Note</Button>;
-        }
+        btn = <Button id="new-note-btn" onClick={this.newNote}>New Note</Button>;
         return (
-            <div id='main-toolbar' className='toolbar'>
-                {name}
+            <div id="main-toolbar" className="toolbar">
                 {btn}
-                <a href='/auth/logout'>Logout</a>
+                <div className="right">
+                    {name}
+                    <Button id="logout-btn" href="/auth/logout">Logout</Button>
+                </div>
             </div>
         );
     }

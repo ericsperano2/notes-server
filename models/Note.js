@@ -32,7 +32,7 @@ module.exports = {
         if (!note.userid) {
             return callback('must set userid');
         }
-        note.timestamp = Date.now(); // TODO UTC
+        //note.timestamp = Date.now(); // TODO UTC
         var params = {
             TableName: config.tables.notes,
             Item: note

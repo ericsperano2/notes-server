@@ -1,6 +1,6 @@
 'use strict';
 
-var Colors = ['red', 'green', 'blue', 'yellow'];
+var Colors = ['red', 'green', 'blue', 'yellow', 'white'];
 
 module.exports = {
     Colors: Colors,

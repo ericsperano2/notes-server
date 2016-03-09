@@ -1,3 +1,32 @@
+
+
+phone u1 <----> server1                         <---->          dyamodb
+
+web u2   <----> server1
+
+phone u2 <----> server2
+
+web u1   <----> server2
+
+ipad u1  <----> server2
+
+
+1:
+phone u1 add a note on server1
+web u1 get notified from server2
+ipad u1 get notified from server2
+
+2:
+web u1 add a note on server2
+phone u1 get notified from server1
+ipad u1 get notified from server2
+
+need something that can:
+1) push a message
+2) wake up listeners for a specific user id. if there is n listeners, message needs to be read from all listeners before getting discarded
+
+
+
 =======================================================================================================================================================================================================
 TO INVESTIGATE
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

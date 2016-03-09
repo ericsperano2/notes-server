@@ -18,11 +18,17 @@ label ::after {
     color: #200;
 }
 
-#main-panel .jumbotron .input-group button {
-    margin-top: 10px;
+#login-panel {
+    margin: auto;
+    width: 30%;
+    background-color: #ddd;
 }
 
+
 #main-toolbar {
+    float: left;
+    clear: both;
+    width: 100%;
     margin-left: 10px;
     margin-bottom: 20px;
 }
@@ -33,6 +39,18 @@ label ::after {
 
 #main-toolbar button {
     margin-right: 10px;
+}
+
+#main-toolbar .right {
+    float: right;
+}
+
+#main-toolbar #user-display-name {
+    margin-right: 20px;
+}
+
+#notes {
+    clear: left;
 }
 
 .note, .note-edit {
@@ -55,7 +73,7 @@ label ::after {
     height: 165px;
 }
 
-.note-edit button {
+.note-edit button, note-new button {
     margin-top: 5px;
     margin-right: 10px;
 }
