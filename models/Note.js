@@ -13,13 +13,16 @@ var appError = function(error, message) {
     return {appError: true, error: error, message: message};
 };
 
-var validateUndefinedOrNull = function(x, funcName, varName, callback) {
+var validateUndefinedOrNull = function(x, typeValidator, funcName, varName, type, callback) {
     if (_.isUndefined(x)) {
         statsd.increment('Note.' + funcName + '.error.undefined_' + varName);
         callback(appError('undefined_' + varName, varName + " can't be undefined."));
     } else if (_.isNull(x)) {
         statsd.increment('Note.' + funcName + '.error.null_' + varName);
         callback(appError('null_' + varName, varName + " can't be null."));
+    } else if (!typeValidator(x)) {
+        statsd.increment('Note.' + funcName + '.error.not_a_' + type + '_' + varName);
+        callback(appError('not_a_' + type + '_' + varName, varName + ' has to be a ' + type + '.'));
     } else {
         return true;
     }
@@ -28,7 +31,7 @@ var validateUndefinedOrNull = function(x, funcName, varName, callback) {
 
 // ====================================================================================================================
 var validateGetAll = function(userid, callback) {
-    return validateUndefinedOrNull(userid, 'getAll', 'userid', callback);
+    return validateUndefinedOrNull(userid, _.isString, 'getAll', 'userid', 'string', callback);
 };
 
 module.exports.getAll = function(userid, callback) {
@@ -58,9 +61,9 @@ module.exports.getAll = function(userid, callback) {
 
 // ====================================================================================================================
 var validateCreate = function(note, callback) {
-    if (validateUndefinedOrNull(note, 'create', 'note', callback) &&
-        validateUndefinedOrNull(note.userid, 'create', 'userid', callback) &&
-        validateUndefinedOrNull(note.content, 'create', 'content', callback)) {
+    if (validateUndefinedOrNull(note, _.isObject, 'create', 'note', 'object', callback) &&
+        validateUndefinedOrNull(note.userid, _.isString, 'create', 'userid', 'string', callback) &&
+        validateUndefinedOrNull(note.content, _.isString, 'create', 'content', 'string', callback)) {
 
         if (note.color && Colors.Colors.indexOf(note.color) === -1) {
             statsd.increment('Note.create.error.invalid_color');
@@ -111,10 +114,11 @@ module.exports.create = function(note, callback) {
 
 // ====================================================================================================================
 var validateUpdate = function(note, callback) {
-    if (validateUndefinedOrNull(note, 'update', 'note', callback) &&
-        validateUndefinedOrNull(note.userid, 'update', 'userid', callback) &&
-        validateUndefinedOrNull(note.timestamp, 'update', 'timestamp', callback) &&
-        validateUndefinedOrNull(note.content, 'update', 'content', callback)) {
+    //return validateUndefinedOrNull(userid, _.isString, 'getAll', 'userid', 'string', callback);
+    if (validateUndefinedOrNull(note, _.isObject, 'update', 'note', 'object', callback) &&
+        validateUndefinedOrNull(note.userid, _.isString, 'update', 'userid', 'string', callback) &&
+        validateUndefinedOrNull(note.timestamp, _.isNumber, 'update', 'timestamp', 'number', callback) &&
+        validateUndefinedOrNull(note.content, _.isString, 'update', 'content', 'string', callback)) {
 
         if (note.color && Colors.Colors.indexOf(note.color) === -1) {
             statsd.increment('Note.update.error.invalid_color');
@@ -157,8 +161,8 @@ module.exports.update = function(note, callback) {
 
 // ====================================================================================================================
 var validateDelete = function(userid, timestamp, callback) {
-    return validateUndefinedOrNull(userid, 'delete', 'userid', callback) &&
-            validateUndefinedOrNull(timestamp, 'delete', 'timestamp', callback);
+    return validateUndefinedOrNull(userid, _.isString, 'delete', 'userid', 'string', callback) &&
+            validateUndefinedOrNull(timestamp, _.isNumber, 'delete', 'timestamp', 'number', callback);
 };
 
 module.exports.delete = function(userid, timestamp, callback) {

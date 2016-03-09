@@ -30,6 +30,17 @@ describe('models', function() {
                 });
             });
 
+            it('returns an error if userid is not a string', function() {
+                var Note = require('../../models/Note');
+                var callback = jest.genMockFunction();
+                Note.getAll(123, callback);
+                expect(callback).toBeCalledWith({
+                    appError: true,
+                    error: 'not_a_string_userid',
+                    message: 'userid has to be a string.'
+                });
+            });
+
             it('returns any other error', function() {
                 var AWS = require('aws-sdk');
                 var Note = require('../../models/Note');
@@ -79,6 +90,17 @@ describe('models', function() {
                 });
             });
 
+            it('returns an error if note is not a object', function() {
+                var Note = require('../../models/Note');
+                var callback = jest.genMockFunction();
+                Note.create(123, callback);
+                expect(callback).toBeCalledWith({
+                    appError: true,
+                    error: 'not_a_object_note',
+                    message: 'note has to be a object.'
+                });
+            });
+
             it('returns an error if note.userid is undefined', function() {
                 var Note = require('../../models/Note');
                 var callback = jest.genMockFunction();
@@ -98,6 +120,17 @@ describe('models', function() {
                     appError: true,
                     error: 'null_userid',
                     message: "userid can't be null."
+                });
+            });
+
+            it('returns an error if note.userid is not a string', function() {
+                var Note = require('../../models/Note');
+                var callback = jest.genMockFunction();
+                Note.create({userid: 123, content: 'allo'}, callback);
+                expect(callback).toBeCalledWith({
+                    appError: true,
+                    error: 'not_a_string_userid',
+                    message: 'userid has to be a string.'
                 });
             });
 
@@ -122,6 +155,18 @@ describe('models', function() {
                     appError: true,
                     error: 'null_content',
                     message: "content can't be null."
+                });
+            });
+
+            it('returns an error if note.content is not a string', function() {
+                var AWS = require('aws-sdk');
+                var Note = require('../../models/Note');
+                var callback = jest.genMockFunction();
+                Note.create({userid: AWS.DynamoDB.User1, content: 123}, callback);
+                expect(callback).toBeCalledWith({
+                    appError: true,
+                    error: 'not_a_string_content',
+                    message: 'content has to be a string.'
                 });
             });
 
@@ -229,6 +274,17 @@ describe('models', function() {
                 });
             });
 
+            it('returns an error if note is not a object', function() {
+                var Note = require('../../models/Note');
+                var callback = jest.genMockFunction();
+                Note.update(123, callback);
+                expect(callback).toBeCalledWith({
+                    appError: true,
+                    error: 'not_a_object_note',
+                    message: 'note has to be a object.'
+                });
+            });
+
             it('returns an error if note.userid is undefined', function() {
                 var Note = require('../../models/Note');
                 var callback = jest.genMockFunction();
@@ -248,6 +304,17 @@ describe('models', function() {
                     appError: true,
                     error: 'null_userid',
                     message: "userid can't be null."
+                });
+            });
+
+            it('returns an error if note.userid is not a string', function() {
+                var Note = require('../../models/Note');
+                var callback = jest.genMockFunction();
+                Note.update({userid: 123, content: 'allo'}, callback);
+                expect(callback).toBeCalledWith({
+                    appError: true,
+                    error: 'not_a_string_userid',
+                    message: 'userid has to be a string.'
                 });
             });
 
@@ -275,6 +342,19 @@ describe('models', function() {
                 });
             });
 
+            it('returns an error if note.timestamp is not a number', function() {
+                var AWS = require('aws-sdk');
+                var Note = require('../../models/Note');
+                var callback = jest.genMockFunction();
+                Note.update({userid: AWS.DynamoDB.User1, content: 'allo', timestamp: 'foo'}, callback);
+                expect(callback).toBeCalledWith({
+                    appError: true,
+                    error: 'not_a_number_timestamp',
+                    message: 'timestamp has to be a number.'
+                });
+            });
+
+
             it('returns an error if note.content is undefined', function() {
                 var AWS = require('aws-sdk');
                 var Note = require('../../models/Note');
@@ -296,6 +376,18 @@ describe('models', function() {
                     appError: true,
                     error: 'null_content',
                     message: "content can't be null."
+                });
+            });
+
+            it('returns an error if note.content is not a string', function() {
+                var AWS = require('aws-sdk');
+                var Note = require('../../models/Note');
+                var callback = jest.genMockFunction();
+                Note.update({userid: AWS.DynamoDB.User1, timestamp: Date.now(), content: 123}, callback);
+                expect(callback).toBeCalledWith({
+                    appError: true,
+                    error: 'not_a_string_content',
+                    message: 'content has to be a string.'
                 });
             });
 
@@ -382,6 +474,17 @@ describe('models', function() {
                 });
             });
 
+            it('returns an error if userid is not a string', function() {
+                var Note = require('../../models/Note');
+                var callback = jest.genMockFunction();
+                Note.delete(123, Date.now(), callback);
+                expect(callback).toBeCalledWith({
+                    appError: true,
+                    error: 'not_a_string_userid',
+                    message: 'userid has to be a string.'
+                });
+            });
+
             it('returns an error if timestamp is undefined', function() {
                 var AWS = require('aws-sdk');
                 var Note = require('../../models/Note');
@@ -403,6 +506,18 @@ describe('models', function() {
                     appError: true,
                     error: 'null_timestamp',
                     message: "timestamp can't be null."
+                });
+            });
+
+            it('returns an error if timestamp is not a number', function() {
+                var AWS = require('aws-sdk');
+                var Note = require('../../models/Note');
+                var callback = jest.genMockFunction();
+                Note.delete(AWS.DynamoDB.User1, 'foo', callback);
+                expect(callback).toBeCalledWith({
+                    appError: true,
+                    error: 'not_a_number_timestamp',
+                    message: 'timestamp has to be a number.'
                 });
             });
 
