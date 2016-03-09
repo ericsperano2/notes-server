@@ -13,7 +13,6 @@ module.exports = Reflux.createStore({
     },
 
     onReset: function() {
-        console.log('ErrorStore.onReset');
         this.error = null;
         this.trigger(null);
     }
