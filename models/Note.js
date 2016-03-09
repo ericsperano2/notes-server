@@ -1,36 +1,86 @@
 'use strict';
 
 var AWS = require('aws-sdk');
+var docClient = new AWS.DynamoDB.DocumentClient();
 var _ = require('lodash');
+var StatsD = require('node-statsd');
 var config = require('../config');
 var logger = require('../logger');
-var docClient = new AWS.DynamoDB.DocumentClient();
-var StatsD = require('node-statsd');
+var Colors = require('./Colors');
 var statsd = new StatsD.StatsD(config.statsd); // eslint-disable-line new-cap
 
 var appError = function(error, message) {
     return {appError: true, error: error, message: message};
 };
 
+var validateUndefinedOrNull = function(x, funcName, varName, callback) {
+    if (_.isUndefined(x)) {
+        statsd.increment('Note.' + funcName + '.error.undefined_' + varName);
+        callback(appError('undefined_' + varName, varName + " can't be undefined."));
+    } else if (_.isNull(x)) {
+        statsd.increment('Note.' + funcName + '.error.null_' + varName);
+        callback(appError('null_' + varName, varName + " can't be null."));
+    } else {
+        return true;
+    }
+    return false;
+};
+
+var validateGetAll = function(userid, callback) {
+    return validateUndefinedOrNull(userid, 'getAll', 'userid', callback);
+};
+
+var validateCreate = function(note, callback) {
+    if (validateUndefinedOrNull(note, 'create', 'note', callback) &&
+        validateUndefinedOrNull(note.userid, 'create', 'userid', callback) &&
+        validateUndefinedOrNull(note.content, 'create', 'content', callback)) {
+
+        if (note.color && Colors.Colors.indexOf(note.color) === -1) {
+            statsd.increment('Note.create.error.invalid_color');
+            callback(appError('invalid_color', 'Invalid note.color: "' + note.color + '".'));
+            return false;
+        }
+        return true;
+    }
+    return false;
+};
+
+var validateUpdate = function(note, callback) {
+    if (validateUndefinedOrNull(note, 'update', 'note', callback) &&
+        validateUndefinedOrNull(note.userid, 'update', 'userid', callback) &&
+        validateUndefinedOrNull(note.timestamp, 'update', 'timestamp', callback) &&
+        validateUndefinedOrNull(note.content, 'update', 'content', callback)) {
+
+        if (note.color && Colors.Colors.indexOf(note.color) === -1) {
+            statsd.increment('Note.update.error.invalid_color');
+            callback(appError('invalid_color', 'Invalid note.color: "' + note.color + '".'));
+            return false;
+        }
+        return true;
+    }
+    return false;
+};
+
+var validateDelete = function(userid, timestamp, callback) {
+    return validateUndefinedOrNull(userid, 'delete', 'userid', callback) &&
+            validateUndefinedOrNull(timestamp, 'delete', 'timestamp', callback);
+};
+
 module.exports = {
     // ================================================================================================================
     getAll: function(userid, callback) {
+        statsd.increment('Note.getAll.attempt');
+        if (!validateGetAll(userid, callback)) {
+            return false;
+        }
         logger.debug('Note.getAll for', userid);
-        if (_.isUndefined(userid)) {
-            return callback(appError('invalid_userid', "Userid can't be undefined."));
-        }
-        if (_.isNull(userid)) {
-            return callback(appError('invalid_userid', "Userid can't be null."));
-        }
         var params = {
-            TableName : config.tables.notes +'zz',
+            TableName : config.tables.notes,
             KeyConditionExpression: 'userid = :userid',
             ExpressionAttributeValues: {
                 ':userid': userid
             }
         };
-
-        statsd.increment('Note.getAll.attempt');
         docClient.query(params, function(err, data) {
             if (err) {
                 statsd.increment('Note.getAll.error');
@@ -46,27 +96,24 @@ module.exports = {
     // ================================================================================================================
     create: function(note, callback) {
         statsd.increment('Note.create.attempt');
-        if (_.isUndefined(userid)) {
-            statsd.increment('Note.create.error.undefined_note');
-            return callback(appError('undefined_note', "Note can't be undefined."));
-        }
-        if (_.isNull(userid)) {
-            statsd.increment('Note.create.error.null_note');
-            return callback(appError('null_note', "Note can't be null."));
-        }
-        if (_.isUndefined(note.userid)) {
-            statsd.increment('Note.create.error.undefined_userid');
-            return callback(appError('undefined_userid', "Note.userid can't be undefined."));
-        }
-        if (_.isNull(note.userid)) {
-            statsd.increment('Note.create.error.null_userid');
-            return callback(appError('null_userid', "Note.userid can't be null."));
+        if (!validateCreate(note, callback)) {
+            return false;
         }
         logger.debug('Creating note for', note.userid);
 
         // set a timestamp if none
-        if (!note.timestamp) {
+        if (_.isUndefined(note.timestamp) || _.isNull(note.timestamp)) {
+            statsd.increment('Note.create.without_timestamp');
             note.timestamp = Date.now(); // TODO UTC
+        } else {
+            statsd.increment('Note.create.with_timestamp');
+        }
+        // set a color if none
+        if (_.isUndefined(note.color) || _.isNull(note.color)) {
+            statsd.increment('Note.create.without_color');
+            note.color = Colors.getRandomColor();
+        } else {
+            statsd.increment('Note.create.with_color');
         }
         var params = {
             TableName: config.tables.notes,
@@ -76,26 +123,35 @@ module.exports = {
             if (err) {
                 statsd.increment('Note.create.error.other');
                 logger.error('Unable to add item:', err);
-                callback(err);
-            } else {
-                statsd.increment('Note.create.success');
-                logger.debug('Added item:', note);
-                callback(null, note);
+                return callback(err);
             }
+            statsd.increment('Note.create.success');
+            logger.debug('Added item:', note);
+            callback(null, note);
         });
     },
 
     // ================================================================================================================
     update: function(note, callback) {
         statsd.increment('Note.update.attempt');
+        if (!validateUpdate(note, callback)) {
+            return false;
+        }
         logger.debug('Updating note for', note.userid, note.timestamp);
         var params = {
             TableName: config.tables.notes,
             Item: note
         };
+        // set a color if none
+        if (_.isUndefined(note.color) || _.isNull(note.color)) {
+            statsd.increment('Note.update.without_color');
+            note.color = Colors.getRandomColor();
+        } else {
+            statsd.increment('Note.update.with_color');
+        }
         docClient.put(params, function(err) {
             if (err) {
-                statsd.increment('Note.update.error');
+                statsd.increment('Note.update.error.other');
                 logger.error('Unable to update item:', err);
                 return callback(err);
             }
@@ -108,23 +164,26 @@ module.exports = {
     // ================================================================================================================
     delete: function(userid, timestamp, callback) {
         statsd.increment('Note.delete.attempt');
+        if (!validateDelete(userid, timestamp, callback)) {
+            return false;
+        }
         logger.debug('Deleting note for', userid, timestamp);
         var params = {
             TableName: config.tables.notes,
             Key: {
-                'userid': userid,
+                userid: userid,
                 timestamp: timestamp
             },
         };
-        docClient.delete(params, function(err, data) {
+        docClient.delete(params, function(err) {
             if (err) {
-                statsd.increment('Note.delete.error');
+                statsd.increment('Note.delete.error.other');
                 logger.error('Unable to delete item:', err);
                 return callback(err);
             }
             statsd.increment('Note.delete.success');
-            logger.debug('DeleteItem succeeded:', data);
-            callback(null, data);
+            logger.debug('DeleteItem succeeded:', userid, timestamp);
+            callback(null, userid, timestamp);
         });
     }
 };

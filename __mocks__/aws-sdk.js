@@ -21,8 +21,6 @@ var SampleError = {
     retryDelay: 0
 };
 
-//jest.autoMockOff();
-//module.exports = require.requireActual('aws-sdk');
 module.exports = {
     DynamoDB: {
         User1: User1,
@@ -39,7 +37,20 @@ module.exports = {
                 return callback(null, {Items: []});
             };
 
+            this.put = function(params, callback) {
+                if (params.Item.userid === 'any_error_id') {
+                    return callback(SampleError);
+                }
+                return callback(null, true);
+            };
+
+            this.delete = function(params, callback) {
+                if (params.Key.userid === 'any_error_id') {
+                    return callback(SampleError);
+                }
+                return callback(null, true);
+            };
+
         }
     }
 };
-//jest.autoMockOn();

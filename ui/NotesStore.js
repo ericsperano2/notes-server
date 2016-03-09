@@ -1,7 +1,7 @@
 'use strict';
 
 var Reflux = require('reflux');
-var Colors = require('./Colors');
+var Colors = require('../models/Colors');
 var NotesActions = require('./NotesActions');
 var websocket = require('./websocket');
 var _ = require('lodash');
