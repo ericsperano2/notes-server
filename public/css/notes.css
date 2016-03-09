@@ -21,9 +21,9 @@ label ::after {
 #login-panel {
     margin: auto;
     width: 30%;
+    min-width: 400px;
     background-color: #ddd;
 }
-
 
 #main-toolbar {
     float: left;
